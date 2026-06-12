@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useDashboard } from "../layout";
@@ -103,8 +103,8 @@ export default function AuditTrailPage() {
                   <p style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>
                     <strong>{log.actor?.name || "System"}</strong>{" "}
                     <span style={{ color: "var(--text-secondary)" }}>{label.text}</span>
-                    {meta.name ? <span style={{ color: "var(--text-secondary)" }}> — “{meta.name}”</span> : null}
-                    {meta.assetName ? <span style={{ color: "var(--text-secondary)" }}> — “{meta.assetName}”</span> : null}
+                    {meta.name ? <span style={{ color: "var(--text-secondary)" }}> - “{meta.name}”</span> : null}
+                    {meta.assetName ? <span style={{ color: "var(--text-secondary)" }}> - “{meta.assetName}”</span> : null}
                   </p>
                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                     {log.entityType} #{log.entityId}

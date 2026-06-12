@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { assertWindowHasCapacity } from "@/lib/availability";
 
-// Overdue/Expired are facts derived from time — sweep on read instead of running a cron.
+// Overdue/Expired are facts derived from time - sweep on read instead of running a cron.
 export async function updateOverdueBookings() {
   try {
     const now = new Date();
@@ -121,7 +121,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // capacity is per date window — gear out this weekend shouldn't block next month
+    // capacity is per date window - gear out this weekend shouldn't block next month
     try {
       await assertWindowHasCapacity(prisma, asset, start, end, parsedQuantity);
     } catch (capacityError) {

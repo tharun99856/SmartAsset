@@ -1,4 +1,4 @@
-// A window [start, end] has room for `qty` more units only if at every moment
+﻿// A window [start, end] has room for `qty` more units only if at every moment
 // allocated(t) + qty <= totalQuantity. Two ranges overlap unless one ends before
 // the other starts, so summing every overlapping active booking gives a safe
 // upper bound for allocated(t) across the whole window.
@@ -33,7 +33,7 @@ export async function assertWindowHasCapacity(client, asset, start, end, request
     throw new Error(
       freeInWindow <= 0
         ? `Every unit of "${asset.name}" is already reserved for those dates. Try a different window.`
-        : `Only ${freeInWindow} ${noun} free for those dates — ${requestedQty} requested.`
+        : `Only ${freeInWindow} ${noun} free for those dates - ${requestedQty} requested.`
     );
   }
 

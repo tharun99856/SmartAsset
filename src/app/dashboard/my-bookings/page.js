@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useDashboard } from "../layout";
@@ -131,17 +131,17 @@ export default function MyBookingsPage() {
                           )}
                           {booking.status === "Issued" && (
                             <span style={{ fontSize: "0.8rem", color: "var(--status-issued)", fontWeight: "500" }}>
-                              With you — due back {endStr}
+                              With you - due back {endStr}
                             </span>
                           )}
                           {booking.status === "Overdue" && (
                             <strong style={{ fontSize: "0.8rem", color: "var(--status-overdue)" }}>
-                              Past due — please return it as soon as you can
+                              Past due - please return it as soon as you can
                             </strong>
                           )}
                           {booking.status === "Approved" && (
                             <span style={{ fontSize: "0.8rem", color: "var(--status-approved)" }}>
-                              Approved — pick it up at the equipment desk
+                              Approved - pick it up at the equipment desk
                             </span>
                           )}
                           {booking.status === "Returned" && (
@@ -188,7 +188,7 @@ export default function MyBookingsPage() {
       {renderBookingTable(
         activeBookings,
         "Out & upcoming",
-        "Nothing reserved right now — browse the catalog when you need gear."
+        "Nothing reserved right now - browse the catalog when you need gear."
       )}
 
       {renderBookingTable(

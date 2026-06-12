@@ -138,9 +138,6 @@ export default function DashboardLayout({ children }) {
           zIndex: 10
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2rem" }}>
-            <div className="logo-plate" style={{ width: "32px", height: "32px", fontSize: "1rem" }}>
-              SA
-            </div>
             <h1 style={{ fontSize: "1.35rem" }}>SmartAsset</h1>
           </div>
 

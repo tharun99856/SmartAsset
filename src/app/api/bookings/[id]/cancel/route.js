@@ -28,7 +28,7 @@ export async function PATCH(request, { params }) {
       }
 
       if (booking.status !== "Pending" && booking.status !== "Approved") {
-        throw new Error("Only pending or approved bookings can be cancelled — checked-out items must be returned instead");
+        throw new Error("Only pending or approved bookings can be cancelled. Checked-out items must be returned instead.");
       }
 
       // Approved bookings already hold stock, so cancelling gives it back.

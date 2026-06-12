@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useDashboard } from "../layout";
@@ -13,7 +13,7 @@ function parseAssetId(text) {
     const fromParam = url.searchParams.get("assetId");
     if (fromParam && /^\d+$/.test(fromParam)) return parseInt(fromParam, 10);
   } catch {
-    // not a URL — fall through
+    // not a URL - fall through
   }
   return null;
 }
@@ -111,7 +111,7 @@ export default function ScanStationPage() {
     e.preventDefault();
     const assetId = parseAssetId(manualId);
     if (assetId == null) {
-      setLookupError("Asset IDs are plain numbers — check the label under the QR code.");
+      setLookupError("Asset IDs are plain numbers - check the label under the QR code.");
       return;
     }
     loadAsset(assetId);
@@ -124,7 +124,7 @@ export default function ScanStationPage() {
     try {
       const res = await fetch(`/api/bookings/${booking.id}/${action}`, { method: "PATCH" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "That didn't go through — try again");
+      if (!res.ok) throw new Error(data.error || "That didn't go through - try again");
       setFlash(
         action === "issue"
           ? `Handed over to ${booking.user.name}. Booking #${booking.id} is now Issued.`
@@ -154,7 +154,7 @@ export default function ScanStationPage() {
           <h3 style={{ fontSize: "1.1rem" }}>Scan a QR label</h3>
           <p style={{ fontSize: "0.85rem", marginTop: "0.25rem" }}>
             Point the camera at the code on the equipment tag. The matching
-            allocations show up on the right — no typing, no logbook.
+            allocations show up on the right - no typing, no logbook.
           </p>
         </div>
 

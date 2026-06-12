@@ -98,12 +98,6 @@ export default function LoginPage() {
         boxShadow: "var(--shadow-lg)"
       }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div
-            className="logo-plate"
-            style={{ width: "48px", height: "48px", fontSize: "1.4rem", marginBottom: "1rem" }}
-          >
-            SA
-          </div>
           <h2 style={{ fontSize: "1.75rem", fontWeight: "700", marginBottom: "0.25rem" }}>
             {isRegister ? "Join SmartAsset" : "Welcome back"}
           </h2>
@@ -270,7 +264,7 @@ export default function LoginPage() {
             borderTop: "1px solid var(--border-color)"
           }}>
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center", marginBottom: "0.75rem" }}>
-              Demo accounts for evaluation — one tap fills in the credentials:
+              Demo accounts for evaluation, one tap fills in the credentials:
             </p>
             <div style={{ display: "flex", gap: "0.75rem" }}>
               <button

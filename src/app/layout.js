@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "SmartAsset — campus equipment, without the logbook",
+  title: "SmartAsset | Campus Equipment Management",
   description: "Live inventory, clash-free bookings and QR check-in/out for shared campus equipment.",
 };
 

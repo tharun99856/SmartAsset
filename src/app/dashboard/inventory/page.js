@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
@@ -142,7 +142,7 @@ export default function InventoryCRUDPage() {
       setQrAsset(asset);
       setQrDataUrl(dataUrl);
     } catch (error) {
-      setErrorMsg("Couldn't draw the QR code — try again.");
+      setErrorMsg("Couldn't draw the QR code - try again.");
       console.error("QR generation failed:", error);
     }
   };
@@ -153,7 +153,7 @@ export default function InventoryCRUDPage() {
     if (!win) return;
     win.document.write(`
       <html>
-        <head><title>QR label — ${qrAsset.name}</title></head>
+        <head><title>QR label - ${qrAsset.name}</title></head>
         <body style="font-family: sans-serif; text-align: center; padding: 24px;">
           <img src="${qrDataUrl}" style="width: 320px; height: 320px;" />
           <h2 style="margin: 12px 0 4px;">${qrAsset.name}</h2>
@@ -194,7 +194,7 @@ export default function InventoryCRUDPage() {
       
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-          Everything the council owns, in one list — stock, condition and printable QR labels.
+          Everything the council owns, in one list. Stock, condition and printable QR labels.
         </p>
         <button className="btn btn-primary" onClick={openAddModal} style={{ padding: "0.6rem 1.25rem" }}>
           Add asset
@@ -248,7 +248,7 @@ export default function InventoryCRUDPage() {
                       </td>
                       <td>{asset.category.name}</td>
                       <td style={{ maxWidth: "240px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {asset.description || "—"}
+                        {asset.description || ""}
                       </td>
                       <td>
                         <strong>{asset.availableQuantity}</strong>

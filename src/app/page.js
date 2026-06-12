@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "SmartAsset — campus equipment, without the logbook",
+  title: "SmartAsset | Campus Equipment Management",
   description:
     "SmartAsset tracks shared equipment, manages bookings, approvals, QR-based workflows, and inventory visibility from one system.",
 };
@@ -52,9 +52,6 @@ export default function LandingPage() {
         zIndex: 1
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <div className="logo-plate" style={{ width: "34px", height: "34px", fontSize: "1.05rem" }}>
-            SA
-          </div>
           <strong style={{
             fontSize: "1.2rem",
             fontFamily: "var(--font-display)",
@@ -106,7 +103,7 @@ export default function LandingPage() {
             lineHeight: 1.6,
             marginBottom: "1.5rem"
           }}>
-            SmartAsset tracks every camera, cable and cajón the council owns — who has it, 
+            SmartAsset tracks every camera, cable and cajon the council owns, who has it, 
             who's next in line, and when it's due back. Students book in seconds, 
             admins approve from one queue, and the warehouse runs on QR scans.
           </p>
