@@ -18,7 +18,6 @@ export default function ActiveAllocationsPage() {
       const res = await fetch("/api/bookings");
       if (res.ok) {
         const data = await res.json();
-        // Keep Approved, Issued, and Overdue bookings
         const filtered = data.bookings.filter(b => 
           b.status === "Approved" || b.status === "Issued" || b.status === "Overdue"
         );
@@ -85,7 +84,6 @@ export default function ActiveAllocationsPage() {
     return <div className="skeleton" style={{ height: "200px", borderRadius: "12px" }}></div>;
   }
 
-  // Split items
   const awaitingPickup = allocations.filter(a => a.status === "Approved");
   const checkedOut = allocations.filter(a => a.status === "Issued" || a.status === "Overdue");
   const activeList = filterTab === "approved" ? awaitingPickup : checkedOut;
@@ -93,39 +91,21 @@ export default function ActiveAllocationsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       
-      {/* Alert Callouts */}
       {errorMsg && (
-        <div style={{
-          background: "rgba(239, 68, 68, 0.1)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "var(--status-rejected)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-error">
           ⚠️ {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div style={{
-          background: "rgba(16, 185, 129, 0.1)",
-          border: "1px solid rgba(16, 185, 129, 0.2)",
-          color: "var(--status-issued)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-success">
           ✅ {successMsg}
         </div>
       )}
 
-      {/* Segment Selector Tabs */}
       <div style={{
         display: "flex",
-        background: "rgba(15, 23, 42, 0.4)",
+        background: "var(--bg-inset)",
         padding: "4px",
         borderRadius: "var(--radius-sm)",
         border: "1px solid var(--border-color)",
@@ -137,7 +117,7 @@ export default function ActiveAllocationsPage() {
             padding: "0.5rem 1.25rem",
             borderRadius: "6px",
             border: "none",
-            background: filterTab === "approved" ? "rgba(139, 92, 246, 0.15)" : "transparent",
+            background: filterTab === "approved" ? "var(--accent-soft)" : "transparent",
             color: filterTab === "approved" ? "var(--text-primary)" : "var(--text-secondary)",
             fontWeight: "600",
             fontSize: "0.85rem",
@@ -153,7 +133,7 @@ export default function ActiveAllocationsPage() {
             padding: "0.5rem 1.25rem",
             borderRadius: "6px",
             border: "none",
-            background: filterTab === "issued" ? "rgba(139, 92, 246, 0.15)" : "transparent",
+            background: filterTab === "issued" ? "var(--accent-soft)" : "transparent",
             color: filterTab === "issued" ? "var(--text-primary)" : "var(--text-secondary)",
             fontWeight: "600",
             fontSize: "0.85rem",
@@ -165,8 +145,7 @@ export default function ActiveAllocationsPage() {
         </button>
       </div>
 
-      {/* Main Table */}
-      <div className="glass-card" style={{ background: "rgba(19, 27, 46, 0.4)", padding: "1.5rem" }}>
+      <div className="glass-card" style={{ background: "var(--bg-panel)", padding: "1.5rem" }}>
         {activeList.length === 0 ? (
           <div style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
             <span style={{ fontSize: "2.5rem" }}>📋</span>
@@ -227,7 +206,7 @@ export default function ActiveAllocationsPage() {
                             onClick={() => handleReturn(alloc.id)}
                             className="btn btn-primary"
                             disabled={isProcessing}
-                            style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem", background: "rgba(139, 92, 246, 0.2)", border: "1px solid var(--primary)", color: "var(--text-primary)" }}
+                            style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem", background: "var(--primary-glow)", border: "1px solid var(--primary)", color: "var(--text-primary)" }}
                           >
                             {isProcessing ? "Checking In..." : "Check In (Return)"}
                           </button>

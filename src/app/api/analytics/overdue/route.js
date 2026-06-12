@@ -13,7 +13,6 @@ export async function GET(request) {
       return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
     }
 
-    // Auto-update before reading
     await updateOverdueBookings();
 
     const overdueBookings = await prisma.booking.findMany({

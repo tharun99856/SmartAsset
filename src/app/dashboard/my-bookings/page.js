@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useDashboard } from "../layout";
 
 export default function MyBookingsPage() {
-  const { user } = useDashboard();
+  const { user, fetchNotifications } = useDashboard();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const fetchMyBookings = async () => {
     try {
@@ -29,6 +31,27 @@ export default function MyBookingsPage() {
     }
   }, [user]);
 
+  const handleCancel = async (booking) => {
+    const sure = window.confirm(
+      `Cancel your request for ${booking.asset.name}? This frees the slot for someone else.`
+    );
+    if (!sure) return;
+
+    setErrorMsg("");
+    setCancellingId(booking.id);
+    try {
+      const res = await fetch(`/api/bookings/${booking.id}/cancel`, { method: "PATCH" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't cancel that booking");
+      fetchMyBookings();
+      fetchNotifications();
+    } catch (error) {
+      setErrorMsg(error.message);
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -38,24 +61,23 @@ export default function MyBookingsPage() {
     );
   }
 
-  // Filter bookings into categories
-  const activeBookings = bookings.filter((b) => 
+  const activeBookings = bookings.filter((b) =>
     b.status === "Approved" || b.status === "Issued" || b.status === "Overdue"
   );
   const pendingBookings = bookings.filter((b) => b.status === "Pending");
-  const historicalBookings = bookings.filter((b) => 
-    b.status === "Returned" || b.status === "Rejected"
+  const historicalBookings = bookings.filter((b) =>
+    ["Returned", "Rejected", "Cancelled", "Expired"].includes(b.status)
   );
 
   const renderBookingTable = (bookingsList, title, emptyMsg) => {
     return (
       <div className="glass-card" style={{
-        background: "rgba(19, 27, 46, 0.4)",
+        background: "var(--bg-panel)",
         padding: "1.5rem",
         marginBottom: "2rem"
       }}>
         <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>{title} ({bookingsList.length})</h3>
-        
+
         {bookingsList.length === 0 ? (
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", padding: "1.5rem 0", textAlign: "center" }}>
             {emptyMsg}
@@ -65,24 +87,25 @@ export default function MyBookingsPage() {
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Asset / Resource</th>
+                  <th>Item</th>
                   <th>Category</th>
-                  <th>Quantity</th>
-                  <th>Requested Period</th>
+                  <th>Qty</th>
+                  <th>Dates</th>
                   <th>Status</th>
-                  <th>Action / Details</th>
+                  <th>Details</th>
                 </tr>
               </thead>
               <tbody>
                 {bookingsList.map((booking) => {
                   const startStr = new Date(booking.startDate).toLocaleDateString();
                   const endStr = new Date(booking.endDate).toLocaleDateString();
-                  
+                  const canCancel = booking.status === "Pending" || booking.status === "Approved";
+
                   return (
                     <tr key={booking.id}>
                       <td>
                         <strong style={{ display: "block" }}>{booking.asset.name}</strong>
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>ID: #{booking.id}</span>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Request #{booking.id}</span>
                       </td>
                       <td>{booking.asset.category.name}</td>
                       <td><strong>{booking.quantityRequested}</strong></td>
@@ -99,32 +122,49 @@ export default function MyBookingsPage() {
                         </span>
                       </td>
                       <td>
-                        {booking.status === "Rejected" && (
-                          <div style={{ fontSize: "0.8rem", color: "var(--status-rejected)" }}>
-                            <span style={{ fontWeight: "600", display: "block" }}>Rejection Reason:</span>
-                            <span>{booking.rejectionReason}</span>
-                          </div>
-                        )}
-                        {booking.status === "Issued" && (
-                          <span style={{ fontSize: "0.8rem", color: "var(--status-issued)", fontWeight: "500" }}>
-                            Physically checked out
-                          </span>
-                        )}
-                        {booking.status === "Overdue" && (
-                          <strong style={{ fontSize: "0.8rem", color: "var(--status-overdue)" }}>
-                            ⚠️ Return Immediately!
-                          </strong>
-                        )}
-                        {booking.status === "Approved" && (
-                          <span style={{ fontSize: "0.8rem", color: "var(--status-approved)" }}>
-                            Awaiting physical pickup
-                          </span>
-                        )}
-                        {booking.status === "Returned" && (
-                          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                            Closed / Checked In
-                          </span>
-                        )}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-start" }}>
+                          {booking.status === "Rejected" && (
+                            <div style={{ fontSize: "0.8rem", color: "var(--status-rejected)" }}>
+                              <span style={{ fontWeight: "600", display: "block" }}>Reason given:</span>
+                              <span>{booking.rejectionReason}</span>
+                            </div>
+                          )}
+                          {booking.status === "Issued" && (
+                            <span style={{ fontSize: "0.8rem", color: "var(--status-issued)", fontWeight: "500" }}>
+                              With you — due back {endStr}
+                            </span>
+                          )}
+                          {booking.status === "Overdue" && (
+                            <strong style={{ fontSize: "0.8rem", color: "var(--status-overdue)" }}>
+                              Past due — please return it as soon as you can
+                            </strong>
+                          )}
+                          {booking.status === "Approved" && (
+                            <span style={{ fontSize: "0.8rem", color: "var(--status-approved)" }}>
+                              Approved — pick it up at the equipment desk
+                            </span>
+                          )}
+                          {booking.status === "Returned" && (
+                            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                              Returned, all done
+                            </span>
+                          )}
+                          {booking.status === "Expired" && (
+                            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                              Start date passed before review
+                            </span>
+                          )}
+                          {canCancel && (
+                            <button
+                              onClick={() => handleCancel(booking)}
+                              className="btn btn-danger"
+                              disabled={cancellingId === booking.id}
+                              style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem" }}
+                            >
+                              {cancellingId === booking.id ? "Cancelling…" : "Cancel"}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -139,27 +179,29 @@ export default function MyBookingsPage() {
 
   return (
     <div>
-      {/* 1. Active Reservations */}
+      {errorMsg && (
+        <div className="alert alert-error">
+          ⚠️ {errorMsg}
+        </div>
+      )}
+
       {renderBookingTable(
         activeBookings,
-        "Active Bookings & Allocations",
-        "No current active bookings or checked-out items."
+        "Out & upcoming",
+        "Nothing reserved right now — browse the catalog when you need gear."
       )}
 
-      {/* 2. Pending Requests */}
       {renderBookingTable(
         pendingBookings,
-        "Awaiting Administrative Review",
-        "No pending booking requests."
+        "Waiting on approval",
+        "No requests in the queue."
       )}
 
-      {/* 3. Borrowing History */}
       {renderBookingTable(
         historicalBookings,
-        "Borrowing History & Archive",
-        "Your borrowing archive is empty."
+        "History",
+        "Past bookings will show up here once you've borrowed something."
       )}
-
     </div>
   );
 }

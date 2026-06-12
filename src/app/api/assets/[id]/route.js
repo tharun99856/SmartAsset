@@ -3,7 +3,6 @@ import { prisma } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
-// GET /api/assets/[id]
 export async function GET(request, { params }) {
   try {
     const user = await getUserFromRequest(request);
@@ -25,7 +24,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    // Include recent bookings context if user is admin or is interested in it
+    // the scan station needs every in-flight allocation, not just recent rows
     const bookings = await prisma.booking.findMany({
       where: { assetId },
       include: {
@@ -34,7 +33,7 @@ export async function GET(request, { params }) {
         }
       },
       orderBy: { createdAt: "desc" },
-      take: 10
+      take: 50
     });
 
     return NextResponse.json({ asset, bookings });
@@ -44,7 +43,6 @@ export async function GET(request, { params }) {
   }
 }
 
-// PUT /api/assets/[id]
 export async function PUT(request, { params }) {
   try {
     const user = await getUserFromRequest(request);
@@ -60,7 +58,6 @@ export async function PUT(request, { params }) {
 
     const { name, categoryId, description, totalQuantity, status } = await request.json();
 
-    // Fetch existing asset
     const oldAsset = await prisma.asset.findUnique({
       where: { id: assetId }
     });
@@ -86,7 +83,6 @@ export async function PUT(request, { params }) {
         return NextResponse.json({ error: "Total quantity cannot be negative" }, { status: 400 });
       }
 
-      // Calculate allocated items: oldTotal - oldAvailable
       const allocated = oldAsset.totalQuantity - oldAsset.availableQuantity;
       const newAvailable = newTotal - allocated;
 
@@ -117,7 +113,6 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE /api/assets/[id]
 export async function DELETE(request, { params }) {
   try {
     const user = await getUserFromRequest(request);
@@ -138,7 +133,7 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    // FR-02.3: Block deletion if active bookings or issued quantities exist
+    // block deletion while any booking still holds or awaits this asset
     const activeBookings = await prisma.booking.count({
       where: {
         assetId,
@@ -154,7 +149,6 @@ export async function DELETE(request, { params }) {
       }, { status: 400 });
     }
 
-    // Delete the asset (cascade delete for historical returned/rejected bookings is handled by Prisma onDelete: Cascade)
     await prisma.asset.delete({
       where: { id: assetId }
     });

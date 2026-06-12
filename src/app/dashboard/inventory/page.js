@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import QRCode from "qrcode";
 import { useDashboard } from "../layout";
 
 export default function InventoryCRUDPage() {
@@ -22,6 +23,10 @@ export default function InventoryCRUDPage() {
     status: "Available"
   });
   const [modalLoading, setModalLoading] = useState(false);
+
+  // QR label modal
+  const [qrAsset, setQrAsset] = useState(null);
+  const [qrDataUrl, setQrDataUrl] = useState("");
 
   const fetchAssets = async () => {
     try {
@@ -124,6 +129,42 @@ export default function InventoryCRUDPage() {
     }
   };
 
+  const openQrModal = async (asset) => {
+    setErrorMsg("");
+    try {
+      // the QR is a deep link to the scan station, so any phone camera works
+      const target = `${window.location.origin}/dashboard/scan?assetId=${asset.id}`;
+      const dataUrl = await QRCode.toDataURL(target, {
+        width: 360,
+        margin: 2,
+        color: { dark: "#0b0f19", light: "#ffffff" }
+      });
+      setQrAsset(asset);
+      setQrDataUrl(dataUrl);
+    } catch (error) {
+      setErrorMsg("Couldn't draw the QR code — try again.");
+      console.error("QR generation failed:", error);
+    }
+  };
+
+  const printQrLabel = () => {
+    if (!qrAsset || !qrDataUrl) return;
+    const win = window.open("", "_blank", "width=420,height=560");
+    if (!win) return;
+    win.document.write(`
+      <html>
+        <head><title>QR label — ${qrAsset.name}</title></head>
+        <body style="font-family: sans-serif; text-align: center; padding: 24px;">
+          <img src="${qrDataUrl}" style="width: 320px; height: 320px;" />
+          <h2 style="margin: 12px 0 4px;">${qrAsset.name}</h2>
+          <p style="margin: 0; color: #555;">Asset #${qrAsset.id} · ${qrAsset.category?.name || ""}</p>
+          <script>window.onload = () => window.print();</script>
+        </body>
+      </html>
+    `);
+    win.document.close();
+  };
+
   const handleDelete = async (asset) => {
     setErrorMsg("");
     setSuccessMsg("");
@@ -151,53 +192,34 @@ export default function InventoryCRUDPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       
-      {/* Header action panel */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-          Manage catalog pool size, description texts, and condition codes.
+          Everything the council owns, in one list — stock, condition and printable QR labels.
         </p>
         <button className="btn btn-primary" onClick={openAddModal} style={{ padding: "0.6rem 1.25rem" }}>
-          ➕ Add Asset
+          Add asset
         </button>
       </div>
 
-      {/* Action alert display */}
       {errorMsg && (
-        <div style={{
-          background: "rgba(239, 68, 68, 0.1)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "var(--status-rejected)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-error">
           ⚠️ {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div style={{
-          background: "rgba(16, 185, 129, 0.1)",
-          border: "1px solid rgba(16, 185, 129, 0.2)",
-          color: "var(--status-issued)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-success">
           ✅ {successMsg}
         </div>
       )}
 
-      {/* Inventory list */}
-      <div className="glass-card" style={{ background: "rgba(19, 27, 46, 0.4)", padding: "1.5rem" }}>
+      <div className="glass-card" style={{ background: "var(--bg-panel)", padding: "1.5rem" }}>
         {assets.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1.5rem" }}>
             <span style={{ fontSize: "3rem" }}>🛠️</span>
-            <h3 style={{ fontSize: "1.25rem", marginTop: "1rem" }}>Inventory is Empty</h3>
+            <h3 style={{ fontSize: "1.25rem", marginTop: "1rem" }}>Nothing registered yet</h3>
             <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-              Click "Add Asset" to start registering physical resources.
+              Add your first asset and it'll show up in the student catalog right away.
             </p>
           </div>
         ) : (
@@ -240,6 +262,13 @@ export default function InventoryCRUDPage() {
                       <td style={{ textAlign: "right" }}>
                         <div style={{ display: "inline-flex", gap: "0.5rem" }}>
                           <button
+                            onClick={() => openQrModal(asset)}
+                            className="btn btn-secondary"
+                            style={{ padding: "0.35rem 0.75rem", fontSize: "0.75rem" }}
+                          >
+                            QR label
+                          </button>
+                          <button
                             onClick={() => openEditModal(asset)}
                             className="btn btn-secondary"
                             style={{ padding: "0.35rem 0.75rem", fontSize: "0.75rem" }}
@@ -266,30 +295,10 @@ export default function InventoryCRUDPage() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(3, 7, 18, 0.8)",
-          backdropFilter: "blur(4px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 100,
-          padding: "1.5rem"
-        }} onClick={closeModal}>
+        <div className="modal-overlay" onClick={closeModal}>
           <div
-            className="glass-card"
-            style={{
-              width: "100%",
-              maxWidth: "500px",
-              background: "var(--bg-secondary)",
-              padding: "2rem",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid rgba(255, 255, 255, 0.1)"
-            }}
+            className="modal-content"
+            style={{ maxWidth: "500px" }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ fontSize: "1.25rem", marginBottom: "1.25rem" }}>
@@ -392,6 +401,40 @@ export default function InventoryCRUDPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* QR Label Modal */}
+      {qrAsset && (
+        <div className="modal-overlay" onClick={() => setQrAsset(null)}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: "400px", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: "1.15rem" }}>{qrAsset.name}</h3>
+            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
+              Asset #{qrAsset.id} · stick this on the kit so the warehouse can scan it in and out.
+            </p>
+            <div style={{
+              background: "#fff",
+              borderRadius: "var(--radius-sm)",
+              padding: "1rem",
+              margin: "1.25rem 0",
+              display: "inline-block"
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrDataUrl} alt={`QR code for ${qrAsset.name}`} style={{ width: "240px", height: "240px", display: "block" }} />
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button className="btn btn-secondary" onClick={() => setQrAsset(null)} style={{ flex: 1 }}>
+                Close
+              </button>
+              <button className="btn btn-primary" onClick={printQrLabel} style={{ flex: 1 }}>
+                Print label
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -13,10 +13,8 @@ export async function GET(request) {
       return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
     }
 
-    // Update overdue bookings first
     await updateOverdueBookings();
 
-    // 1. General Metrics
     const totalAssets = await prisma.asset.count();
     const totalBookings = await prisma.booking.count();
     const activeAllocations = await prisma.booking.count({
@@ -33,7 +31,6 @@ export async function GET(request) {
     const availableInventoryCount = assetsList.reduce((sum, a) => sum + a.availableQuantity, 0);
     const allocatedInventoryCount = totalInventoryCount - availableInventoryCount;
 
-    // 2. Top Utilized Assets (by booking count)
     const assetsWithBookings = await prisma.asset.findMany({
       include: {
         bookings: true
@@ -49,14 +46,12 @@ export async function GET(request) {
       .sort((a, b) => b.bookingsCount - a.bookingsCount)
       .slice(0, 5);
 
-    // 3. Utilization Rates (Allocated vs Available)
     const utilizationRate = {
       allocated: allocatedInventoryCount,
       available: availableInventoryCount,
       total: totalInventoryCount
     };
 
-    // 4. Booking Trends (last 7 days volume)
     const trends = [];
     const today = new Date();
     

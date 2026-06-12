@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { assertWindowHasCapacity } from "@/lib/availability";
 
-// Helper to update overdue bookings
+// Overdue/Expired are facts derived from time — sweep on read instead of running a cron.
 export async function updateOverdueBookings() {
   try {
     const now = new Date();
@@ -16,12 +17,20 @@ export async function updateOverdueBookings() {
         status: "Overdue"
       }
     });
+    await prisma.booking.updateMany({
+      where: {
+        status: "Pending",
+        startDate: { lt: new Date(now.getFullYear(), now.getMonth(), now.getDate()) }
+      },
+      data: {
+        status: "Expired"
+      }
+    });
   } catch (error) {
     console.error("Error auto-updating overdue bookings:", error);
   }
 }
 
-// GET /api/bookings
 export async function GET(request) {
   try {
     const user = await getUserFromRequest(request);
@@ -29,7 +38,6 @@ export async function GET(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Auto-sync overdue bookings first
     await updateOverdueBookings();
 
     const { searchParams } = new URL(request.url);
@@ -63,7 +71,6 @@ export async function GET(request) {
   }
 }
 
-// POST /api/bookings
 export async function POST(request) {
   try {
     const user = await getUserFromRequest(request);
@@ -82,7 +89,6 @@ export async function POST(request) {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // Basic date validations
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
     }
@@ -101,7 +107,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "Quantity requested must be greater than zero" }, { status: 400 });
     }
 
-    // Fetch asset details
     const asset = await prisma.asset.findUnique({
       where: { id: parsedAssetId }
     });
@@ -116,15 +121,14 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // FR-03.5: Reject booking if requested quantity exceeds available quantity
-    if (parsedQuantity > asset.availableQuantity) {
-      return NextResponse.json({
-        error: `Requested quantity (${parsedQuantity}) exceeds currently available quantity (${asset.availableQuantity}).`
-      }, { status: 400 });
+    // capacity is per date window — gear out this weekend shouldn't block next month
+    try {
+      await assertWindowHasCapacity(prisma, asset, start, end, parsedQuantity);
+    } catch (capacityError) {
+      return NextResponse.json({ error: capacityError.message }, { status: 409 });
     }
 
-    // FR-03.6: Duplicate Prevention
-    // Check if the user already has a pending booking request that overlaps with this request's time frame
+    // don't let one user stack overlapping pending requests for the same asset
     const overlappingPending = await prisma.booking.findFirst({
       where: {
         userId: user.id,
@@ -145,7 +149,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Create booking (status = Pending, available quantity NOT decremented yet)
+    // stock isn't held until an admin approves
     const booking = await prisma.booking.create({
       data: {
         userId: user.id,

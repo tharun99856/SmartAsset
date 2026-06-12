@@ -1,14 +1,14 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Smart Asset Management & Resource Allocation Platform",
-  description: "Centralized resource booking and inventory tracking platform for shared organizational assets.",
+  title: "SmartAsset — campus equipment, without the logbook",
+  description: "Live inventory, clash-free bookings and QR check-in/out for shared campus equipment.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col" style={{ background: "var(--bg-primary)" }}>{children}</body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

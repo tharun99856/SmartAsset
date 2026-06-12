@@ -3,7 +3,6 @@ import { prisma } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
-// GET /api/assets
 export async function GET(request) {
   try {
     const user = await getUserFromRequest(request);
@@ -19,7 +18,6 @@ export async function GET(request) {
 
     const where = {};
 
-    // Filter by search query (name or description)
     if (search) {
       where.OR = [
         { name: { contains: search } },
@@ -27,17 +25,14 @@ export async function GET(request) {
       ];
     }
 
-    // Filter by Category
     if (categoryId) {
       where.categoryId = parseInt(categoryId);
     }
 
-    // Filter by Status
     if (status) {
       where.status = status;
     }
 
-    // Filter by availability (available quantity > 0)
     if (availableOnly) {
       where.availableQuantity = { gt: 0 };
     }
@@ -59,7 +54,6 @@ export async function GET(request) {
   }
 }
 
-// POST /api/assets
 export async function POST(request) {
   try {
     const user = await getUserFromRequest(request);
@@ -83,7 +77,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "Total quantity cannot be negative" }, { status: 400 });
     }
 
-    // Verify Category exists
     const category = await prisma.category.findUnique({
       where: { id: parsedCategoryId }
     });
@@ -91,7 +84,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "Category not found" }, { status: 400 });
     }
 
-    // Create asset (availableQuantity initially equals totalQuantity)
     const asset = await prisma.asset.create({
       data: {
         name,
@@ -106,7 +98,6 @@ export async function POST(request) {
       }
     });
 
-    // Log administrative action
     await logAction(user.id, "CREATE_ASSET", "Asset", asset.id, { name, totalQuantity: parsedTotalQuantity });
 
     return NextResponse.json({ message: "Asset created successfully", asset }, { status: 201 });

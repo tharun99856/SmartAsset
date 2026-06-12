@@ -16,12 +16,10 @@ export default function DashboardLayout({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Notification States
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch session user details
   const fetchSession = async () => {
     try {
       const res = await fetch("/api/auth/me");
@@ -32,8 +30,6 @@ export default function DashboardLayout({ children }) {
       setUser(data.user);
       setLoading(false);
       
-      // If admin and on root dashboard, we stay.
-      // If consumer and on root dashboard, redirect to catalog.
       if (pathname === "/dashboard" && data.user.role !== "admin") {
         router.replace("/dashboard/catalog");
       }
@@ -42,7 +38,6 @@ export default function DashboardLayout({ children }) {
     }
   };
 
-  // Fetch recent notifications
   const fetchNotifications = async () => {
     try {
       const res = await fetch("/api/notifications");
@@ -75,7 +70,6 @@ export default function DashboardLayout({ children }) {
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      // Poll notifications every 30 seconds
       const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
     }
@@ -102,37 +96,37 @@ export default function DashboardLayout({ children }) {
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
           <div className="skeleton" style={{ width: "40px", height: "40px", borderRadius: "50%" }}></div>
-          <p style={{ fontSize: "0.875rem" }}>Initializing dashboard session...</p>
+          <p style={{ fontSize: "0.875rem" }}>Getting your workspace ready…</p>
         </div>
       </div>
     );
   }
 
-  // Define sidebar links based on role
+  // sidebar tags read like crate labels
   const adminLinks = [
-    { name: "Analytics Dashboard", href: "/dashboard", icon: "📊" },
-    { name: "Requests Queue", href: "/dashboard/requests", icon: "📥" },
-    { name: "Active Allocations", href: "/dashboard/allocations", icon: "📋" },
-    { name: "Overdue Items", href: "/dashboard/overdue", icon: "⚠️" },
-    { name: "Inventory CRUD", href: "/dashboard/inventory", icon: "🛠️" },
+    { name: "Overview", href: "/dashboard", icon: "OVR" },
+    { name: "Requests", href: "/dashboard/requests", icon: "REQ" },
+    { name: "Allocations", href: "/dashboard/allocations", icon: "OUT" },
+    { name: "Overdue", href: "/dashboard/overdue", icon: "DUE" },
+    { name: "Inventory", href: "/dashboard/inventory", icon: "INV" },
+    { name: "Scan station", href: "/dashboard/scan", icon: "SCN" },
+    { name: "Audit trail", href: "/dashboard/audit", icon: "LOG" },
   ];
 
   const userLinks = [
-    { name: "Browse Catalog", href: "/dashboard/catalog", icon: "🔍" },
-    { name: "My Bookings", href: "/dashboard/my-bookings", icon: "🎒" },
+    { name: "Catalog", href: "/dashboard/catalog", icon: "CAT" },
+    { name: "My bookings", href: "/dashboard/my-bookings", icon: "BKG" },
   ];
 
   const navLinks = user.role === "admin" ? adminLinks : userLinks;
 
-  // Determine current page title
   const currentLink = navLinks.find(link => link.href === pathname);
   const pageTitle = currentLink ? currentLink.name : "Smart Asset Management";
 
   return (
     <DashboardContext.Provider value={{ user, fetchNotifications }}>
-      <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-primary)", position: "relative" }}>
+      <div style={{ display: "flex", minHeight: "100vh", position: "relative" }}>
         
-        {/* Sidebar Nav */}
         <aside style={{
           width: "280px",
           background: "var(--bg-secondary)",
@@ -143,44 +137,21 @@ export default function DashboardLayout({ children }) {
           flexShrink: 0,
           zIndex: 10
         }}>
-          {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2rem" }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "32px",
-              height: "32px",
-              borderRadius: "8px",
-              background: "linear-gradient(135deg, var(--primary), var(--secondary))",
-              color: "#fff",
-              fontWeight: "700"
-            }}>
-              Ω
+            <div className="logo-plate" style={{ width: "32px", height: "32px", fontSize: "1rem" }}>
+              SA
             </div>
-            <h1 style={{ fontSize: "1.25rem", fontWeight: "700" }}>SmartAsset</h1>
+            <h1 style={{ fontSize: "1.35rem" }}>SmartAsset</h1>
           </div>
 
-          {/* User Profile Info */}
           <div className="glass-card" style={{
             padding: "1rem",
             marginBottom: "2rem",
-            background: "rgba(15, 23, 42, 0.4)",
-            border: "1px solid rgba(255, 255, 255, 0.04)"
+            background: "var(--bg-inset)",
+            border: "1px solid var(--border-color)"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <div style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--primary), var(--secondary))",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: "700",
-                fontSize: "0.95rem",
-                color: "#fff"
-              }}>
+              <div className="logo-plate" style={{ width: "40px", height: "40px", fontSize: "0.95rem" }}>
                 {user.name.split(" ").map(n => n[0]).join("").toUpperCase()}
               </div>
               <div style={{ overflow: "hidden" }}>
@@ -194,7 +165,6 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
 
-          {/* Navigation Links */}
           <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
@@ -209,7 +179,7 @@ export default function DashboardLayout({ children }) {
                     padding: "0.75rem 1rem",
                     borderRadius: "var(--radius-sm)",
                     color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
-                    background: isActive ? "rgba(139, 92, 246, 0.15)" : "transparent",
+                    background: isActive ? "var(--accent-soft)" : "transparent",
                     borderLeft: isActive ? "3px solid var(--primary)" : "3px solid transparent",
                     textDecoration: "none",
                     fontWeight: isActive ? "600" : "500",
@@ -217,14 +187,18 @@ export default function DashboardLayout({ children }) {
                     transition: "var(--transition)"
                   }}
                 >
-                  <span style={{ fontSize: "1.1rem" }}>{link.icon}</span>
+                  <span
+                    className="tag-chip"
+                    style={isActive ? { color: "var(--primary)", borderColor: "var(--primary)" } : undefined}
+                  >
+                    {link.icon}
+                  </span>
                   <span>{link.name}</span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Logout button */}
           <button
             onClick={handleLogout}
             className="btn btn-secondary"
@@ -242,10 +216,8 @@ export default function DashboardLayout({ children }) {
           </button>
         </aside>
 
-        {/* Main Workspace */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative" }}>
           
-          {/* Header Bar */}
           <header style={{
             height: "70px",
             borderBottom: "1px solid var(--border-color)",
@@ -253,7 +225,7 @@ export default function DashboardLayout({ children }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            background: "rgba(11, 15, 25, 0.6)",
+            background: "var(--bg-header)",
             backdropFilter: "blur(8px)",
             position: "sticky",
             top: 0,
@@ -261,9 +233,7 @@ export default function DashboardLayout({ children }) {
           }}>
             <h2 style={{ fontSize: "1.25rem", fontWeight: "600" }}>{pageTitle}</h2>
             
-            {/* Action Bar */}
             <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", position: "relative" }}>
-              {/* Notification Bell */}
               <div style={{ position: "relative" }}>
                 <button
                   onClick={() => {
@@ -310,7 +280,6 @@ export default function DashboardLayout({ children }) {
                   </span>
                 )}
 
-                {/* Notifications Dropdown (Glass themed) */}
                 {showNotifications && (
                   <div className="glass-card" style={{
                     position: "absolute",
@@ -321,7 +290,7 @@ export default function DashboardLayout({ children }) {
                     overflowY: "auto",
                     zIndex: 20,
                     padding: "1rem",
-                    background: "rgba(19, 27, 46, 0.95)",
+                    background: "var(--bg-secondary)",
                     boxShadow: "var(--shadow-lg)",
                     borderRadius: "var(--radius-md)",
                     display: "flex",
@@ -358,7 +327,7 @@ export default function DashboardLayout({ children }) {
                             style={{
                               padding: "0.75rem",
                               borderRadius: "var(--radius-sm)",
-                              background: n.isRead ? "rgba(255,255,255,0.01)" : "rgba(139, 92, 246, 0.06)",
+                              background: n.isRead ? "transparent" : "var(--accent-soft)",
                               borderLeft: `3px solid ${n.isRead ? "transparent" : "var(--primary)"}`,
                               fontSize: "0.8rem",
                               lineHeight: "1.3"
@@ -376,7 +345,6 @@ export default function DashboardLayout({ children }) {
                 )}
               </div>
 
-              {/* User Initials badge */}
               <div style={{
                 width: "36px",
                 height: "36px",
@@ -395,7 +363,6 @@ export default function DashboardLayout({ children }) {
             </div>
           </header>
 
-          {/* Main Content Pane */}
           <main style={{ flex: 1, padding: "2rem", overflowY: "auto", position: "relative", zIndex: 1 }}>
             {children}
           </main>

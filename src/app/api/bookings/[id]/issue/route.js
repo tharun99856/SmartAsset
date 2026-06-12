@@ -30,7 +30,6 @@ export async function PATCH(request, { params }) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      // Update booking status
       const updatedBooking = await tx.booking.update({
         where: { id: bookingId },
         data: {
@@ -38,7 +37,6 @@ export async function PATCH(request, { params }) {
         }
       });
 
-      // Log the handoff transaction
       const transaction = await tx.assetTransaction.create({
         data: {
           bookingId,
@@ -48,7 +46,6 @@ export async function PATCH(request, { params }) {
         }
       });
 
-      // Create notification
       await tx.notification.create({
         data: {
           userId: booking.userId,

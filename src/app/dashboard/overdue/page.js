@@ -61,37 +61,19 @@ export default function OverdueItemsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       
-      {/* Alerts */}
       {errorMsg && (
-        <div style={{
-          background: "rgba(239, 68, 68, 0.1)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "var(--status-rejected)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-error">
           ⚠️ {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div style={{
-          background: "rgba(16, 185, 129, 0.1)",
-          border: "1px solid rgba(16, 185, 129, 0.2)",
-          color: "var(--status-issued)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-success">
           ✅ {successMsg}
         </div>
       )}
 
-      {/* Overdue Table */}
-      <div className="glass-card" style={{ background: "rgba(19, 27, 46, 0.4)", padding: "1.5rem" }}>
+      <div className="glass-card" style={{ background: "var(--bg-panel)", padding: "1.5rem" }}>
         {overdue.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1.5rem" }}>
             <span style={{ fontSize: "3rem" }}>🎉</span>

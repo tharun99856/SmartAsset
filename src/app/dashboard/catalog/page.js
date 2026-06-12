@@ -1,20 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDashboard } from "../layout";
 
-export default function AssetCatalogPage() {
+function CatalogSkeleton() {
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+      gap: "1.5rem"
+    }}>
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="skeleton" style={{ height: "240px", borderRadius: "12px" }}></div>
+      ))}
+    </div>
+  );
+}
+
+function AssetCatalog() {
   const { fetchNotifications } = useDashboard();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // filters live in the URL so views are shareable and survive refresh
+  const search = searchParams.get("q") || "";
+  const selectedCategory = searchParams.get("category") || "";
+  const availableOnly = searchParams.get("available") === "1";
+
+  const [searchInput, setSearchInput] = useState(search);
   const [assets, setAssets] = useState([]);
   const [categories, setCategories] = useState([]);
-  
-  // Filters
-  const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [availableOnly, setAvailableOnly] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Booking Modal
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [bookingQty, setBookingQty] = useState(1);
   const [startDate, setStartDate] = useState("");
@@ -22,6 +41,40 @@ export default function AssetCatalogPage() {
   const [bookingError, setBookingError] = useState("");
   const [bookingSuccess, setBookingSuccess] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+
+  const setParam = (key, value) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  // debounce typing into ?q=
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      if (searchInput !== search) setParam("q", searchInput);
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [searchInput]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data.categories || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const fetchAssets = async () => {
     try {
@@ -43,42 +96,20 @@ export default function AssetCatalogPage() {
     }
   };
 
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/categories");
-      if (res.ok) {
-        const data = await res.json();
-        setCategories(data.categories || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchAssets();
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
+    fetchAssets();
   }, [search, selectedCategory, availableOnly]);
 
-  // Handle open modal
   const openBookingModal = (asset) => {
     setSelectedAsset(asset);
     setBookingQty(1);
     setBookingError("");
     setBookingSuccess("");
-    
-    // Set default dates: today & tomorrow
+
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
-    
+
     setStartDate(today.toISOString().split("T")[0]);
     setEndDate(tomorrow.toISOString().split("T")[0]);
   };
@@ -91,20 +122,15 @@ export default function AssetCatalogPage() {
     e.preventDefault();
     setBookingError("");
     setBookingSuccess("");
+
+    if (!bookingQty || bookingQty <= 0) {
+      setBookingError("Quantity needs to be at least 1.");
+      return;
+    }
+
     setBookingLoading(true);
-
-    if (bookingQty <= 0) {
-      setBookingError("Quantity must be at least 1");
-      setBookingLoading(false);
-      return;
-    }
-    if (bookingQty > selectedAsset.availableQuantity) {
-      setBookingError(`Requested quantity exceeds available stock (${selectedAsset.availableQuantity})`);
-      setBookingLoading(false);
-      return;
-    }
-
     try {
+      // availability is decided server-side per date window, not by today's stock
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,12 +144,12 @@ export default function AssetCatalogPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to submit booking");
+        throw new Error(data.error || "Couldn't submit that request");
       }
 
-      setBookingSuccess("Your booking request has been submitted and is pending admin approval!");
-      fetchAssets(); // Refresh stock metrics
-      fetchNotifications(); // Update notification bell in header
+      setBookingSuccess("Request sent! You'll get a notification once an admin reviews it.");
+      fetchAssets();
+      fetchNotifications();
 
       setTimeout(() => {
         closeBookingModal();
@@ -137,26 +163,24 @@ export default function AssetCatalogPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      
-      {/* Search & Filter Bar */}
+
       <div className="glass-card" style={{
         display: "flex",
         flexWrap: "wrap",
         gap: "1.25rem",
         alignItems: "center",
         justifyContent: "space-between",
-        background: "rgba(19, 27, 46, 0.4)",
+        background: "var(--bg-panel)",
         padding: "1.25rem"
       }}>
         <div style={{ display: "flex", flex: 1, minWidth: "260px", gap: "1rem" }}>
-          {/* Search box */}
           <div style={{ position: "relative", flex: 1 }}>
             <input
               type="text"
-              placeholder="Search assets by name or description..."
+              placeholder="Search for cameras, mics, lights…"
               className="form-input"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               style={{ paddingLeft: "2.5rem" }}
             />
             <span style={{ position: "absolute", left: "0.95rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "0.95rem" }}>
@@ -164,21 +188,19 @@ export default function AssetCatalogPage() {
             </span>
           </div>
 
-          {/* Category Dropdown */}
           <select
             className="form-select"
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={(e) => setParam("category", e.target.value)}
             style={{ width: "200px" }}
           >
-            <option value="">All Categories</option>
+            <option value="">All categories</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
 
-        {/* Availability Toggle */}
         <label style={{
           display: "flex",
           alignItems: "center",
@@ -191,7 +213,7 @@ export default function AssetCatalogPage() {
           <input
             type="checkbox"
             checked={availableOnly}
-            onChange={(e) => setAvailableOnly(e.target.checked)}
+            onChange={(e) => setParam("available", e.target.checked ? "1" : "")}
             style={{
               width: "16px",
               height: "16px",
@@ -199,27 +221,18 @@ export default function AssetCatalogPage() {
               cursor: "pointer"
             }}
           />
-          <span>Show available stock only</span>
+          <span>In stock today only</span>
         </label>
       </div>
 
-      {/* Asset Grid */}
       {loading ? (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: "1.5rem"
-        }}>
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="skeleton" style={{ height: "240px", borderRadius: "12px" }}></div>
-          ))}
-        </div>
+        <CatalogSkeleton />
       ) : assets.length === 0 ? (
-        <div className="glass-card" style={{ textAlign: "center", padding: "4rem 2rem", background: "rgba(19, 27, 46, 0.2)" }}>
+        <div className="glass-card" style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--bg-panel)" }}>
           <span style={{ fontSize: "3rem" }}>📦</span>
-          <h3 style={{ marginTop: "1rem", fontSize: "1.25rem" }}>No Assets Found</h3>
+          <h3 style={{ marginTop: "1rem", fontSize: "1.25rem" }}>Nothing matched that</h3>
           <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
-            Adjust your search or filters to see available organizational equipment.
+            Try a shorter search term, or clear the filters and browse everything.
           </p>
         </div>
       ) : (
@@ -231,7 +244,7 @@ export default function AssetCatalogPage() {
           {assets.map((asset) => {
             const isOutOfStock = asset.availableQuantity === 0;
             const statusClass = isOutOfStock ? "rejected" : asset.status === "Under Maintenance" ? "overdue" : "issued";
-            
+
             return (
               <div
                 key={asset.id}
@@ -245,7 +258,6 @@ export default function AssetCatalogPage() {
                 }}
               >
                 <div>
-                  {/* Category Tag */}
                   <span style={{
                     fontSize: "0.7rem",
                     fontWeight: "600",
@@ -271,20 +283,19 @@ export default function AssetCatalogPage() {
                     minHeight: "3.75rem",
                     marginBottom: "1rem"
                   }}>
-                    {asset.description || "No description provided."}
+                    {asset.description || "No description yet."}
                   </p>
                 </div>
 
-                {/* Stock Gauge */}
                 <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", textTransform: "uppercase", fontWeight: "500" }}>Stock</span>
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", textTransform: "uppercase", fontWeight: "500" }}>In stock now</span>
                     <strong style={{ fontSize: "0.95rem" }}>
-                      {asset.availableQuantity} <span style={{ fontWeight: "400", color: "var(--text-muted)" }}>/ {asset.totalQuantity} available</span>
+                      {asset.availableQuantity} <span style={{ fontWeight: "400", color: "var(--text-muted)" }}>of {asset.totalQuantity}</span>
                     </strong>
                   </div>
                   <span className={`badge badge-${statusClass}`} style={{ fontSize: "0.65rem" }}>
-                    {isOutOfStock ? "Out of Stock" : asset.status}
+                    {isOutOfStock ? "All out" : asset.status}
                   </span>
                 </div>
               </div>
@@ -295,34 +306,12 @@ export default function AssetCatalogPage() {
 
       {/* Booking Details Modal */}
       {selectedAsset && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(3, 7, 18, 0.8)",
-          backdropFilter: "blur(4px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 100,
-          padding: "1.5rem"
-        }} onClick={closeBookingModal}>
+        <div className="modal-overlay" onClick={closeBookingModal}>
           <div
-            className="glass-card"
-            style={{
-              width: "100%",
-              maxWidth: "520px",
-              background: "var(--bg-secondary)",
-              padding: "2rem",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "var(--shadow-lg)"
-            }}
+            className="modal-content"
+            style={{ maxWidth: "520px" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
               <div>
                 <span style={{ fontSize: "0.75rem", fontWeight: "600", color: "var(--primary)", textTransform: "uppercase" }}>
@@ -344,13 +333,12 @@ export default function AssetCatalogPage() {
               </button>
             </div>
 
-            {/* Modal Body */}
             <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
-              {selectedAsset.description || "No description provided."}
+              {selectedAsset.description || "No description yet."}
             </p>
 
             <div style={{
-              background: "rgba(15, 23, 42, 0.4)",
+              background: "var(--bg-inset)",
               borderRadius: "var(--radius-sm)",
               padding: "1rem",
               border: "1px solid var(--border-color)",
@@ -359,11 +347,11 @@ export default function AssetCatalogPage() {
               marginBottom: "1.5rem"
             }}>
               <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>Available Stock</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>In stock now</span>
                 <strong style={{ fontSize: "1.2rem", color: "var(--status-issued)" }}>{selectedAsset.availableQuantity} units</strong>
               </div>
               <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>Total Pool</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>Total pool</span>
                 <strong style={{ fontSize: "1.2rem" }}>{selectedAsset.totalQuantity} units</strong>
               </div>
               <div>
@@ -372,43 +360,23 @@ export default function AssetCatalogPage() {
               </div>
             </div>
 
-            {/* Notifications inside modal */}
             {bookingError && (
-              <div style={{
-                background: "rgba(239, 68, 68, 0.1)",
-                border: "1px solid rgba(239, 68, 68, 0.2)",
-                color: "var(--status-rejected)",
-                fontSize: "0.85rem",
-                padding: "0.75rem 1rem",
-                borderRadius: "var(--radius-sm)",
-                marginBottom: "1rem",
-                fontWeight: "500"
-              }}>
-                ⚠️ {bookingError}
+              <div className="alert alert-error">
+                {bookingError}
               </div>
             )}
 
             {bookingSuccess && (
-              <div style={{
-                background: "rgba(16, 185, 129, 0.1)",
-                border: "1px solid rgba(16, 185, 129, 0.2)",
-                color: "var(--status-issued)",
-                fontSize: "0.85rem",
-                padding: "0.75rem 1rem",
-                borderRadius: "var(--radius-sm)",
-                marginBottom: "1rem",
-                fontWeight: "500"
-              }}>
-                ✅ {bookingSuccess}
+              <div className="alert alert-success">
+                {bookingSuccess}
               </div>
             )}
 
-            {/* Booking Form */}
-            {selectedAsset.availableQuantity > 0 && selectedAsset.status === "Available" ? (
+            {selectedAsset.status === "Available" || selectedAsset.status === "Partially Available" ? (
               <form onSubmit={handleBookingSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="startDate">Start Date</label>
+                    <label className="form-label" htmlFor="startDate">Pick up on</label>
                     <input
                       id="startDate"
                       type="date"
@@ -419,7 +387,7 @@ export default function AssetCatalogPage() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="endDate">End Date (Due Return)</label>
+                    <label className="form-label" htmlFor="endDate">Return by</label>
                     <input
                       id="endDate"
                       type="date"
@@ -432,12 +400,12 @@ export default function AssetCatalogPage() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="qty">Quantity Requested</label>
+                  <label className="form-label" htmlFor="qty">How many do you need?</label>
                   <input
                     id="qty"
                     type="number"
                     min="1"
-                    max={selectedAsset.availableQuantity}
+                    max={selectedAsset.totalQuantity}
                     className="form-input"
                     required
                     value={bookingQty}
@@ -460,22 +428,14 @@ export default function AssetCatalogPage() {
                     disabled={bookingLoading || bookingSuccess}
                     style={{ flex: 2 }}
                   >
-                    {bookingLoading ? "Submitting..." : "Submit Booking Request"}
+                    {bookingLoading ? "Sending…" : "Request booking"}
                   </button>
                 </div>
               </form>
             ) : (
               <div>
-                <div style={{
-                  textAlign: "center",
-                  padding: "1.5rem",
-                  background: "rgba(239, 68, 68, 0.05)",
-                  border: "1px dashed rgba(239, 68, 68, 0.2)",
-                  borderRadius: "var(--radius-sm)",
-                  color: "var(--text-secondary)",
-                  fontSize: "0.9rem"
-                }}>
-                  This asset is currently out of stock or unavailable for booking.
+                <div className="alert alert-error" style={{ justifyContent: "center" }}>
+                  This item is {selectedAsset.status === "Under Maintenance" ? "in the workshop for maintenance" : "not bookable right now"}. Check back soon.
                 </div>
                 <button
                   type="button"
@@ -491,5 +451,13 @@ export default function AssetCatalogPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AssetCatalogPage() {
+  return (
+    <Suspense fallback={<CatalogSkeleton />}>
+      <AssetCatalog />
+    </Suspense>
   );
 }

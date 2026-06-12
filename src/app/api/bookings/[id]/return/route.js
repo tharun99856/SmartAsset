@@ -17,7 +17,6 @@ export async function PATCH(request, { params }) {
     const bookingId = parseInt(id);
 
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Fetch booking with asset
       const booking = await tx.booking.findUnique({
         where: { id: bookingId },
         include: { asset: true }
@@ -33,7 +32,6 @@ export async function PATCH(request, { params }) {
 
       const asset = booking.asset;
 
-      // 2. Increment asset available quantity
       const updatedAsset = await tx.asset.update({
         where: { id: asset.id },
         data: {
@@ -41,7 +39,6 @@ export async function PATCH(request, { params }) {
         }
       });
 
-      // 3. Update booking status
       const updatedBooking = await tx.booking.update({
         where: { id: bookingId },
         data: {
@@ -49,7 +46,6 @@ export async function PATCH(request, { params }) {
         }
       });
 
-      // 4. Log the return transaction
       const transaction = await tx.assetTransaction.create({
         data: {
           bookingId,
@@ -59,7 +55,6 @@ export async function PATCH(request, { params }) {
         }
       });
 
-      // 5. Create notification
       await tx.notification.create({
         data: {
           userId: booking.userId,

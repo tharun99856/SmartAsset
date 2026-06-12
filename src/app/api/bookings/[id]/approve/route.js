@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { assertWindowHasCapacity } from "@/lib/availability";
 
 export async function PATCH(request, { params }) {
   try {
@@ -16,9 +17,7 @@ export async function PATCH(request, { params }) {
     const { id } = await params;
     const bookingId = parseInt(id);
 
-    // Perform inside transaction to ensure data integrity
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Fetch booking with asset
       const booking = await tx.booking.findUnique({
         where: { id: bookingId },
         include: { asset: true }
@@ -34,12 +33,12 @@ export async function PATCH(request, { params }) {
 
       const asset = booking.asset;
 
-      // 2. Quantity validation
+      // both the stock counter and the window formula must agree
       if (asset.availableQuantity < booking.quantityRequested) {
         throw new Error(`Insufficient stock. Only ${asset.availableQuantity} available, but ${booking.quantityRequested} requested.`);
       }
+      await assertWindowHasCapacity(tx, asset, booking.startDate, booking.endDate, booking.quantityRequested, booking.id);
 
-      // 3. Decrement asset available quantity
       const updatedAsset = await tx.asset.update({
         where: { id: asset.id },
         data: {
@@ -47,7 +46,6 @@ export async function PATCH(request, { params }) {
         }
       });
 
-      // 4. Update booking status
       const updatedBooking = await tx.booking.update({
         where: { id: bookingId },
         data: {
@@ -55,7 +53,6 @@ export async function PATCH(request, { params }) {
         }
       });
 
-      // 5. Create user notification
       await tx.notification.create({
         data: {
           userId: booking.userId,

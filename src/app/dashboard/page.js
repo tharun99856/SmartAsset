@@ -54,32 +54,22 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div style={{
-        background: "rgba(239, 68, 68, 0.1)",
-        border: "1px solid rgba(239, 68, 68, 0.2)",
-        color: "var(--status-rejected)",
-        padding: "1rem",
-        borderRadius: "var(--radius-md)",
-        textAlign: "center"
-      }}>
-        {error}
+      <div className="alert alert-error">
+        ⚠️ {error}
       </div>
     );
   }
 
   const { summary, mostUtilized, utilizationRate, trends } = data;
 
-  // Donut Chart calculations
   const totalInv = utilizationRate.total || 1;
   const allocatedPercent = Math.round((utilizationRate.allocated / totalInv) * 100);
   const availablePercent = 100 - allocatedPercent;
   
-  // SVG Donut properties
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (allocatedPercent / 100) * circumference;
 
-  // Line Chart Calculations for 7 days
   const maxTrendVal = Math.max(...trends.map(t => t.count), 5); // Fallback to 5 to avoid flat charts
   const linePoints = trends.map((t, idx) => {
     const x = 50 + idx * 80;
@@ -92,13 +82,11 @@ export default function AdminDashboardPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
       
-      {/* Summary Row */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
         gap: "1.5rem"
       }}>
-        {/* Card: Total Assets */}
         <div className="glass-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", borderLeft: "4px solid var(--primary)" }}>
           <div style={{ fontSize: "2rem" }}>🛠️</div>
           <div>
@@ -107,7 +95,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card: Total Bookings */}
         <div className="glass-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", borderLeft: "4px solid var(--secondary)" }}>
           <div style={{ fontSize: "2rem" }}>📅</div>
           <div>
@@ -116,7 +103,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card: Active Allocations */}
         <div className="glass-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", borderLeft: "4px solid var(--status-approved)" }}>
           <div style={{ fontSize: "2rem" }}>📋</div>
           <div>
@@ -125,7 +111,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card: Available Stock */}
         <div className="glass-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", borderLeft: "4px solid var(--status-issued)" }}>
           <div style={{ fontSize: "2rem" }}>✅</div>
           <div>
@@ -134,13 +119,12 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card: Overdue Returns */}
         <div className="glass-card" style={{
           display: "flex",
           alignItems: "center",
           gap: "1.25rem",
           borderLeft: "4px solid var(--status-overdue)",
-          boxShadow: summary.overdueReturns > 0 ? "0 4px 20px -4px rgba(249, 115, 22, 0.2)" : "var(--shadow-md)"
+          boxShadow: summary.overdueReturns > 0 ? "0 4px 12px -2px rgba(194, 87, 26, 0.15)" : "var(--shadow-md)"
         }}>
           <div style={{ fontSize: "2rem" }}>⚠️</div>
           <div>
@@ -155,26 +139,20 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Main Charts Block */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
         gap: "1.5rem"
       }}>
         
-        {/* Donut Chart: Inventory Utilization */}
         <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <h3 style={{ fontSize: "1.1rem" }}>Inventory Utilization Rate</h3>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", flex: 1, padding: "1rem 0" }}>
             
-            {/* SVG Donut */}
             <div style={{ position: "relative", width: "160px", height: "160px" }}>
               <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: "rotate(-90deg)" }}>
-                {/* Background Ring */}
-                <circle cx="80" cy="80" r={radius} fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="14" />
-                {/* Available Section */}
+                <circle cx="80" cy="80" r={radius} fill="transparent" stroke="var(--bg-inset)" strokeWidth="14" />
                 <circle cx="80" cy="80" r={radius} fill="transparent" stroke="var(--status-issued)" strokeWidth="14" strokeDasharray={circumference} strokeDashoffset="0" />
-                {/* Allocated Section */}
                 <circle
                   cx="80"
                   cy="80"
@@ -187,7 +165,6 @@ export default function AdminDashboardPage() {
                   strokeLinecap="round"
                 />
               </svg>
-              {/* Central Text */}
               <div style={{
                 position: "absolute",
                 top: "50%",
@@ -200,7 +177,6 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Labels */}
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "var(--primary)" }}></div>
@@ -224,7 +200,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Bar Chart: Most Utilized Assets */}
         <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <h3 style={{ fontSize: "1.1rem" }}>Top Utilized Assets</h3>
           {mostUtilized.length === 0 ? (
@@ -242,10 +217,10 @@ export default function AdminDashboardPage() {
                     </div>
                     <div style={{
                       height: "8px",
-                      background: "rgba(255,255,255,0.03)",
+                      background: "var(--bg-inset)",
                       borderRadius: "4px",
                       overflow: "hidden",
-                      border: "1px solid rgba(255,255,255,0.04)"
+                      border: "1px solid var(--border-color)"
                     }}>
                       <div style={{
                         width: `${percent}%`,
@@ -263,12 +238,10 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Booking Trends Line Chart */}
       <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         <h3 style={{ fontSize: "1.1rem" }}>Booking Request Trends (Last 7 Days)</h3>
         <div style={{ position: "relative", width: "100%", height: "240px", overflow: "hidden" }}>
           <svg style={{ width: "100%", height: "100%" }} viewBox="0 0 600 240" preserveAspectRatio="none">
-            {/* Gradients */}
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4" />
@@ -276,30 +249,23 @@ export default function AdminDashboardPage() {
               </linearGradient>
             </defs>
 
-            {/* Grid Lines */}
-            <line x1="50" y1="50" x2="530" y2="50" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-            <line x1="50" y1="125" x2="530" y2="125" stroke="rgba(255,255,255,0.04)" strokeDasharray="3,3" />
-            <line x1="50" y1="200" x2="530" y2="200" stroke="rgba(255,255,255,0.1)" />
+            <line x1="50" y1="50" x2="530" y2="50" stroke="var(--bg-inset)" strokeDasharray="3,3" />
+            <line x1="50" y1="125" x2="530" y2="125" stroke="var(--bg-inset)" strokeDasharray="3,3" />
+            <line x1="50" y1="200" x2="530" y2="200" stroke="var(--border-color)" />
 
-            {/* Area Fill */}
             <polygon points={areaPoints} fill="url(#areaGrad)" />
 
-            {/* Line Path */}
             <polyline points={linePoints} fill="none" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
-            {/* Grid labels */}
             {trends.map((t, idx) => {
               const x = 50 + idx * 80;
               const y = 200 - (t.count / maxTrendVal) * 150;
               return (
                 <g key={idx}>
-                  {/* Point Marker */}
                   <circle cx={x} cy={y} r="5" fill="var(--bg-primary)" stroke="var(--primary)" strokeWidth="2" />
-                  {/* Value Text */}
                   <text x={x} y={y - 10} fill="var(--text-primary)" fontSize="10" textAnchor="middle" fontWeight="600">
                     {t.count}
                   </text>
-                  {/* Date Label */}
                   <text x={x} y="220" fill="var(--text-muted)" fontSize="9" textAnchor="middle">
                     {t.date}
                   </text>

@@ -11,7 +11,6 @@ export default function RequestsQueuePage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Reject Modal
   const [rejectingBooking, setRejectingBooking] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
@@ -106,37 +105,19 @@ export default function RequestsQueuePage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       
-      {/* Alert Banners */}
       {errorMsg && (
-        <div style={{
-          background: "rgba(239, 68, 68, 0.1)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "var(--status-rejected)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-error">
           ⚠️ {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div style={{
-          background: "rgba(16, 185, 129, 0.1)",
-          border: "1px solid rgba(16, 185, 129, 0.2)",
-          color: "var(--status-issued)",
-          fontSize: "0.9rem",
-          padding: "0.75rem 1rem",
-          borderRadius: "var(--radius-sm)",
-          fontWeight: "500"
-        }}>
+        <div className="alert alert-success">
           ✅ {successMsg}
         </div>
       )}
 
-      {/* Main Table */}
-      <div className="glass-card" style={{ background: "rgba(19, 27, 46, 0.4)", padding: "1.5rem" }}>
+      <div className="glass-card" style={{ background: "var(--bg-panel)", padding: "1.5rem" }}>
         {requests.length === 0 ? (
           <div style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
             <span style={{ fontSize: "2.5rem" }}>📥</span>
@@ -217,32 +198,12 @@ export default function RequestsQueuePage() {
         )}
       </div>
 
-      {/* Reject Modal */}
+      {/* Rejection Modal */}
       {rejectingBooking && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(3, 7, 18, 0.8)",
-          backdropFilter: "blur(4px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 100,
-          padding: "1.5rem"
-        }} onClick={closeRejectModal}>
+        <div className="modal-overlay" onClick={closeRejectModal}>
           <div
-            className="glass-card"
-            style={{
-              width: "100%",
-              maxWidth: "440px",
-              background: "var(--bg-secondary)",
-              padding: "2rem",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid rgba(255, 255, 255, 0.1)"
-            }}
+            className="modal-content"
+            style={{ maxWidth: "480px" }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ fontSize: "1.2rem", marginBottom: "1rem" }}>Reject Booking Request #{rejectingBooking.id}</h3>

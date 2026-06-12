@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -14,6 +14,32 @@ export default function LoginPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+
+  // Check if there's already a logged-in admin session (needed to show admin role option)
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.user?.role) setCurrentUserRole(data.user.role);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Sign out failed:", err);
+    } finally {
+      setFormData({ name: "", email: "", password: "", role: "user" });
+      setCurrentUserRole(null);
+      setError("");
+      setSigningOut(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -42,7 +68,6 @@ export default function LoginPage() {
         throw new Error(data.error || "Something went wrong. Please try again.");
       }
 
-      // Success: redirect to dashboard
       router.push("/dashboard");
     } catch (err) {
       setError(err.message);
@@ -58,13 +83,10 @@ export default function LoginPage() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "var(--bg-primary)",
       overflow: "hidden",
       padding: "2rem"
     }}>
-      {/* Background glowing decorations */}
-      <div className="glow-accent" style={{ top: "-10%", left: "-10%", background: "radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(0,0,0,0) 70%)" }}></div>
-      <div className="glow-accent" style={{ bottom: "-10%", right: "-10%", background: "radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(0,0,0,0) 70%)" }}></div>
+
 
       <div className="glass-card" style={{
         width: "100%",
@@ -72,40 +94,29 @@ export default function LoginPage() {
         zIndex: 1,
         borderRadius: "var(--radius-lg)",
         padding: "2.5rem 2rem",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        boxShadow: "0 20px 40px -15px rgba(0,0,0,0.8)"
+        border: "1px solid var(--border-color)",
+        boxShadow: "var(--shadow-lg)"
       }}>
-        {/* Logo/Header */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "48px",
-            height: "48px",
-            borderRadius: "12px",
-            background: "linear-gradient(135deg, var(--primary), var(--secondary))",
-            color: "#fff",
-            fontSize: "1.5rem",
-            fontWeight: "700",
-            fontFamily: "var(--font-display)",
-            marginBottom: "1rem",
-            boxShadow: "0 0 20px var(--primary-glow)"
-          }}>
-            Ω
+          <div
+            className="logo-plate"
+            style={{ width: "48px", height: "48px", fontSize: "1.4rem", marginBottom: "1rem" }}
+          >
+            SA
           </div>
           <h2 style={{ fontSize: "1.75rem", fontWeight: "700", marginBottom: "0.25rem" }}>
-            Smart Asset
+            {isRegister ? "Join SmartAsset" : "Welcome back"}
           </h2>
           <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-            Resource Allocation & Tracking Platform
+            {isRegister
+              ? "An account takes about twenty seconds."
+              : "Sign in to book gear or run the equipment desk."}
           </p>
         </div>
 
-        {/* Tab Selector */}
         <div style={{
           display: "flex",
-          background: "rgba(15, 23, 42, 0.6)",
+          background: "var(--bg-inset)",
           padding: "4px",
           borderRadius: "var(--radius-sm)",
           marginBottom: "1.5rem",
@@ -149,11 +160,10 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Error Callout */}
         {error && (
           <div style={{
-            background: "rgba(239, 68, 68, 0.1)",
-            border: "1px solid rgba(239, 68, 68, 0.2)",
+            background: "rgba(226, 92, 74, 0.1)",
+            border: "1px solid rgba(226, 92, 74, 0.2)",
             color: "var(--status-rejected)",
             fontSize: "0.875rem",
             padding: "0.75rem 1rem",
@@ -169,7 +179,6 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Auth Form */}
         <form onSubmit={handleSubmit}>
           {isRegister && (
             <div className="form-group">
@@ -179,7 +188,7 @@ export default function LoginPage() {
                 name="name"
                 type="text"
                 className="form-input"
-                placeholder="John Doe"
+                placeholder="Your full name"
                 required
                 value={formData.name}
                 onChange={handleInputChange}
@@ -217,7 +226,7 @@ export default function LoginPage() {
 
           {isRegister && (
             <div className="form-group">
-              <label className="form-label" htmlFor="role">Select User Role</label>
+              <label className="form-label" htmlFor="role">I'm signing up as</label>
               <select
                 id="role"
                 name="role"
@@ -225,9 +234,16 @@ export default function LoginPage() {
                 value={formData.role}
                 onChange={handleInputChange}
               >
-                <option value="user">Resource Consumer (User)</option>
-                <option value="admin">Administrator (Admin)</option>
+                <option value="user">Student / borrower</option>
+                {currentUserRole === "admin" && (
+                  <option value="admin">Equipment desk admin</option>
+                )}
               </select>
+              {currentUserRole !== "admin" && (
+                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.4rem" }}>
+                  Admin accounts can only be created by an existing admin.
+                </p>
+              )}
             </div>
           )}
 
@@ -247,11 +263,48 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-            By continuing, you agree to organization security guidelines.
-          </p>
-        </div>
+        {!isRegister && (
+          <div style={{
+            marginTop: "1.5rem",
+            paddingTop: "1.25rem",
+            borderTop: "1px solid var(--border-color)"
+          }}>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center", marginBottom: "0.75rem" }}>
+              Demo accounts for evaluation — one tap fills in the credentials:
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ flex: 1, padding: "0.5rem", fontSize: "0.8rem" }}
+                onClick={() => setFormData((prev) => ({ ...prev, email: "admin_r@ee.iitr.ac.in", password: "admin123" }))}
+              >
+                Admin account
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ flex: 1, padding: "0.5rem", fontSize: "0.8rem" }}
+                onClick={() => setFormData((prev) => ({ ...prev, email: "student_t@ee.iitr.ac.in", password: "student123" }))}
+              >
+                Student account
+              </button>
+            </div>
+            <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", textAlign: "center", marginTop: "0.75rem", fontFamily: "var(--font-mono)" }}>
+              admin_r@ee.iitr.ac.in · admin123 &nbsp;|&nbsp; student_t@ee.iitr.ac.in · student123
+            </p>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={signingOut}
+              style={{ width: "100%", marginTop: "0.75rem", padding: "0.5rem", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}
+              onClick={handleSignOut}
+            >
+              <span>🚪</span>
+              <span>{signingOut ? "Signing out…" : "Sign Out"}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
