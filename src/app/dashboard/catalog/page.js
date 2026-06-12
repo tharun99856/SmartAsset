@@ -147,7 +147,7 @@ function AssetCatalog() {
         throw new Error(data.error || "Couldn't submit that request");
       }
 
-      setBookingSuccess("Request sent! You'll get a notification once an admin reviews it.");
+      setBookingSuccess("Request submitted. You will receive a notification when an admin reviews it.");
       fetchAssets();
       fetchNotifications();
 
@@ -177,7 +177,7 @@ function AssetCatalog() {
           <div style={{ position: "relative", flex: 1 }}>
             <input
               type="text"
-              placeholder="Search for cameras, mics, lights…"
+              placeholder="Search by name or description"
               className="form-input"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
@@ -230,9 +230,9 @@ function AssetCatalog() {
       ) : assets.length === 0 ? (
         <div className="glass-card" style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--bg-panel)" }}>
           <span style={{ fontSize: "3rem" }}>📦</span>
-          <h3 style={{ marginTop: "1rem", fontSize: "1.25rem" }}>Nothing matched that</h3>
+          <h3 style={{ marginTop: "1rem", fontSize: "1.25rem" }}>No results</h3>
           <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
-            Try a shorter search term, or clear the filters and browse everything.
+            No assets match the current filters. Clear filters to see all inventory.
           </p>
         </div>
       ) : (
@@ -400,7 +400,7 @@ function AssetCatalog() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="qty">How many do you need?</label>
+                  <label className="form-label" htmlFor="qty">Quantity</label>
                   <input
                     id="qty"
                     type="number"
@@ -435,7 +435,7 @@ function AssetCatalog() {
             ) : (
               <div>
                 <div className="alert alert-error" style={{ justifyContent: "center" }}>
-                  This item is {selectedAsset.status === "Under Maintenance" ? "in the workshop for maintenance" : "not bookable right now"}. Check back soon.
+                  This item is currently {selectedAsset.status === "Under Maintenance" ? "under maintenance" : "unavailable"} and cannot be booked.
                 </div>
                 <button
                   type="button"

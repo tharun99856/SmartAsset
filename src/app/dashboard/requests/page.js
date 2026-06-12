@@ -121,9 +121,9 @@ export default function RequestsQueuePage() {
         {requests.length === 0 ? (
           <div style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
             <span style={{ fontSize: "2.5rem" }}>📥</span>
-            <h3 style={{ fontSize: "1.1rem", marginTop: "1rem" }}>Queue is Empty</h3>
+            <h3 style={{ fontSize: "1.1rem", marginTop: "1rem" }}>No pending requests</h3>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-              All booking requests have been processed.
+              No booking requests are waiting for review.
             </p>
           </div>
         ) : (
@@ -208,7 +208,7 @@ export default function RequestsQueuePage() {
           >
             <h3 style={{ fontSize: "1.2rem", marginBottom: "1rem" }}>Reject Booking Request #{rejectingBooking.id}</h3>
             <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "1.25rem" }}>
-              Are you sure you want to reject the booking request from <strong>{rejectingBooking.user.name}</strong> for <strong>{rejectingBooking.asset.name}</strong>?
+              Reject the booking from <strong>{rejectingBooking.user.name}</strong> for <strong>{rejectingBooking.asset.name}</strong>. A reason is required and will be shown to the user.
             </p>
 
             <form onSubmit={handleReject}>
@@ -217,7 +217,7 @@ export default function RequestsQueuePage() {
                 <textarea
                   id="reason"
                   className="form-textarea"
-                  placeholder="Specify why the request is rejected (e.g. maintenance, inventory reserved for council event)..."
+                  placeholder="State why the request is rejected (e.g. item under maintenance, reserved for another event)..."
                   required
                   rows="3"
                   value={rejectionReason}

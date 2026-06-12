@@ -71,7 +71,7 @@ export default function ActiveAllocationsPage() {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || "Failed to process return");
-      setSuccessMsg(`Asset for Booking #${id} checked in. Stock replenished!`);
+      setSuccessMsg(`Booking #${id} return recorded. Stock updated.`);
       fetchAllocations();
     } catch (error) {
       setErrorMsg(error.message);
@@ -149,9 +149,9 @@ export default function ActiveAllocationsPage() {
         {activeList.length === 0 ? (
           <div style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
             <span style={{ fontSize: "2.5rem" }}>📋</span>
-            <h3 style={{ fontSize: "1.1rem", marginTop: "1rem" }}>No allocations in this category</h3>
+            <h3 style={{ fontSize: "1.1rem", marginTop: "1rem" }}>No allocations</h3>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-              There are no current allocations matching this filter.
+              No allocations match this filter.
             </p>
           </div>
         ) : (

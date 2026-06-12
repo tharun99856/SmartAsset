@@ -33,7 +33,7 @@ export default function MyBookingsPage() {
 
   const handleCancel = async (booking) => {
     const sure = window.confirm(
-      `Cancel your request for ${booking.asset.name}? This frees the slot for someone else.`
+      `Cancel booking for ${booking.asset.name}?`
     );
     if (!sure) return;
 
@@ -131,27 +131,27 @@ export default function MyBookingsPage() {
                           )}
                           {booking.status === "Issued" && (
                             <span style={{ fontSize: "0.8rem", color: "var(--status-issued)", fontWeight: "500" }}>
-                              With you - due back {endStr}
+                              Issued. Due back {endStr}.
                             </span>
                           )}
                           {booking.status === "Overdue" && (
                             <strong style={{ fontSize: "0.8rem", color: "var(--status-overdue)" }}>
-                              Past due - please return it as soon as you can
+                              Past due date. Return immediately.
                             </strong>
                           )}
                           {booking.status === "Approved" && (
                             <span style={{ fontSize: "0.8rem", color: "var(--status-approved)" }}>
-                              Approved - pick it up at the equipment desk
+                              Approved. Collect from the equipment desk.
                             </span>
                           )}
                           {booking.status === "Returned" && (
                             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                              Returned, all done
+                              Returned.
                             </span>
                           )}
                           {booking.status === "Expired" && (
                             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                              Start date passed before review
+                              Expired. Start date passed before approval.
                             </span>
                           )}
                           {canCancel && (
@@ -187,20 +187,20 @@ export default function MyBookingsPage() {
 
       {renderBookingTable(
         activeBookings,
-        "Out & upcoming",
-        "Nothing reserved right now - browse the catalog when you need gear."
+        "Active",
+        "No active bookings."
       )}
 
       {renderBookingTable(
         pendingBookings,
-        "Waiting on approval",
-        "No requests in the queue."
+        "Pending approval",
+        "No pending requests."
       )}
 
       {renderBookingTable(
         historicalBookings,
         "History",
-        "Past bookings will show up here once you've borrowed something."
+        "No past bookings."
       )}
     </div>
   );

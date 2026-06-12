@@ -99,12 +99,12 @@ export default function LoginPage() {
       }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h2 style={{ fontSize: "1.75rem", fontWeight: "700", marginBottom: "0.25rem" }}>
-            {isRegister ? "Join SmartAsset" : "Welcome back"}
+            {isRegister ? "Create account" : "Sign in"}
           </h2>
           <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
             {isRegister
-              ? "An account takes about twenty seconds."
-              : "Sign in to book gear or run the equipment desk."}
+              ? "Fill in the fields below to register."
+              : "Enter your email and password to continue."}
           </p>
         </div>
 
@@ -264,7 +264,7 @@ export default function LoginPage() {
             borderTop: "1px solid var(--border-color)"
           }}>
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center", marginBottom: "0.75rem" }}>
-              Demo accounts for evaluation, one tap fills in the credentials:
+              Demo accounts — click to fill credentials:
             </p>
             <div style={{ display: "flex", gap: "0.75rem" }}>
               <button

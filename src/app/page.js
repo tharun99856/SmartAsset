@@ -9,27 +9,27 @@ export const metadata = {
 const features = [
   {
     title: "Booking engine",
-    body: "Availability is verified inside database transactions, ensuring overlapping bookings can never exceed inventory.",
+    body: "Booking requests are validated against all overlapping approved and issued bookings. A request is rejected if the quantity requested would exceed available stock for that date range.",
   },
   {
-    title: "QR operations",
-    body: "Every asset carries a QR code. One scan identifies the item, verifies the booking, and records issue or return instantly.",
+    title: "QR check-in/out",
+    body: "Each asset has a QR code. Scanning it on the desk opens the asset's booking record. The admin can issue or check in from the same screen.",
   },
   {
     title: "Audit trail",
-    body: "Every approval, issue, return and inventory update is recorded in an append-only audit trail, making accountability a search instead of a guessing game.",
+    body: "Every create, approve, issue, return and delete is written to an append-only log with a timestamp and actor. The log cannot be edited.",
   },
   {
     title: "Approval workflow",
-    body: "Students request equipment. Administrators approve or reject from a unified dashboard while users track request status in real time.",
+    body: "Users submit booking requests with a date range and quantity. Admins review, approve, or reject from a single queue. Users see status updates in real time.",
   },
   {
     title: "Inventory management",
-    body: "Assets are categorized, searchable, quantity-aware, and maintain accurate availability throughout their lifecycle.",
+    body: "Assets are organised by category with total and available quantity tracked separately. Available quantity updates automatically when bookings are approved or returned.",
   },
   {
     title: "Analytics",
-    body: "Monitor utilization rates, active bookings, overdue returns and inventory health through a live dashboard.",
+    body: "The admin dashboard shows total assets, active allocations, available stock, overdue count, top-borrowed assets, and a 7-day booking request chart.",
   }
 ];
 
@@ -84,7 +84,7 @@ export default function LandingPage() {
             letterSpacing: "0.1em",
             marginBottom: "1.25rem"
           }}>
-            For the cultural council equipment room
+            Asset management for shared equipment rooms
           </p>
           <h1 style={{
             fontSize: "clamp(2.6rem, 6.5vw, 4.8rem)",
@@ -93,8 +93,7 @@ export default function LandingPage() {
             color: "var(--text-primary)",
             marginBottom: "1.5rem"
           }}>
-            The logbook retired.<br />
-            Nobody misses it.
+            Track, book, and manage shared equipment.
           </h1>
           <p style={{
             fontSize: "1.1rem",
@@ -103,17 +102,15 @@ export default function LandingPage() {
             lineHeight: 1.6,
             marginBottom: "1.5rem"
           }}>
-            SmartAsset tracks every camera, cable and cajon the council owns, who has it, 
-            who's next in line, and when it's due back. Students book in seconds, 
-            admins approve from one queue, and the warehouse runs on QR scans.
+            SmartAsset tracks inventory, handles booking requests and approvals, and records every handover via QR scan. Admins manage the full lifecycle from one dashboard.
           </p>
 
           <div style={{ display: "flex", gap: "1rem", marginTop: "2.5rem", flexWrap: "wrap" }}>
             <Link href="/login" className="btn btn-primary" style={{ padding: "0.85rem 2rem", fontSize: "0.95rem" }}>
-              Browse the catalog
+              Browse catalog
             </Link>
             <Link href="/login" className="btn btn-secondary" style={{ padding: "0.85rem 2rem", fontSize: "0.95rem" }}>
-              Admin console
+              Admin login
             </Link>
           </div>
         </div>
@@ -158,7 +155,7 @@ export default function LandingPage() {
         marginTop: "auto"
       }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          Built with Next.js, Prisma and PostgreSQL. The only thing we retired was the logbook.
+          Built with Next.js, Prisma and PostgreSQL.
         </div>
       </footer>
     </div>

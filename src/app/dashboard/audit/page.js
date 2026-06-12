@@ -59,7 +59,7 @@ export default function AuditTrailPage() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
         <p style={{ fontSize: "0.9rem" }}>
-          Every write to the system lands here, append-only. Nothing on this page can be edited or deleted.
+          All system writes are recorded here. Records are append-only and cannot be modified.
         </p>
         <select
           className="form-select"
@@ -76,9 +76,9 @@ export default function AuditTrailPage() {
 
       {logs.length === 0 ? (
         <div className="glass-card" style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--bg-panel)" }}>
-          <h3 style={{ fontSize: "1.1rem" }}>Nothing logged yet</h3>
+          <h3 style={{ fontSize: "1.1rem" }}>No log entries</h3>
           <p style={{ fontSize: "0.85rem", marginTop: "0.5rem", color: "var(--text-muted)" }}>
-            As soon as someone creates, approves, or returns anything, it shows up here.
+            Log entries appear here after any create, approve, issue, or return action.
           </p>
         </div>
       ) : (

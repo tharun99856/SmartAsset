@@ -169,7 +169,7 @@ export default function InventoryCRUDPage() {
     setErrorMsg("");
     setSuccessMsg("");
     
-    const confirmed = window.confirm(`Are you absolutely sure you want to delete "${asset.name}" from the inventory database?`);
+            const confirmed = window.confirm(`Delete "${asset.name}"? This cannot be undone.`);
     if (!confirmed) return;
 
     try {
@@ -194,7 +194,7 @@ export default function InventoryCRUDPage() {
       
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-          Everything the council owns, in one list. Stock, condition and printable QR labels.
+          All assets with current stock levels and QR labels.
         </p>
         <button className="btn btn-primary" onClick={openAddModal} style={{ padding: "0.6rem 1.25rem" }}>
           Add asset
@@ -217,9 +217,9 @@ export default function InventoryCRUDPage() {
         {assets.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1.5rem" }}>
             <span style={{ fontSize: "3rem" }}>🛠️</span>
-            <h3 style={{ fontSize: "1.25rem", marginTop: "1rem" }}>Nothing registered yet</h3>
+            <h3 style={{ fontSize: "1.25rem", marginTop: "1rem" }}>No assets registered</h3>
             <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-              Add your first asset and it'll show up in the student catalog right away.
+              Add an asset to make it available in the catalog.
             </p>
           </div>
         ) : (
@@ -414,8 +414,8 @@ export default function InventoryCRUDPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ fontSize: "1.15rem" }}>{qrAsset.name}</h3>
-            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-              Asset #{qrAsset.id} · stick this on the kit so the warehouse can scan it in and out.
+            <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
+              Print this label and attach it to the asset. Scanning it will open the asset record on the scan station.
             </p>
             <div style={{
               background: "#fff",

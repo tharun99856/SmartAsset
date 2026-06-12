@@ -96,7 +96,7 @@ export default function DashboardLayout({ children }) {
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
           <div className="skeleton" style={{ width: "40px", height: "40px", borderRadius: "50%" }}></div>
-          <p style={{ fontSize: "0.875rem" }}>Getting your workspace ready…</p>
+          <p style={{ fontSize: "0.875rem" }}>Loading...</p>
         </div>
       </div>
     );
@@ -314,7 +314,7 @@ export default function DashboardLayout({ children }) {
                     </div>
                     {notifications.length === 0 ? (
                       <p style={{ textAlign: "center", fontSize: "0.8rem", color: "var(--text-muted)", padding: "1.5rem 0" }}>
-                        No notifications to show.
+                        No notifications.
                       </p>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

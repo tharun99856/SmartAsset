@@ -45,7 +45,7 @@ export default function OverdueItemsPage() {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || "Failed to process return");
-      setSuccessMsg(`Delinquency settled. Asset for Booking #${id} checked back in!`);
+      setSuccessMsg(`Booking #${id} return recorded. Stock updated.`);
       fetchOverdue();
     } catch (error) {
       setErrorMsg(error.message);
@@ -77,9 +77,9 @@ export default function OverdueItemsPage() {
         {overdue.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1.5rem" }}>
             <span style={{ fontSize: "3rem" }}>🎉</span>
-            <h3 style={{ fontSize: "1.25rem", marginTop: "1rem", color: "var(--status-issued)" }}>No Overdue Returns</h3>
+            <h3 style={{ fontSize: "1.25rem", marginTop: "1rem", color: "var(--status-issued)" }}>No overdue items</h3>
             <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-              All checked out resources are currently within their due return windows.
+              All issued assets are within their return date.
             </p>
           </div>
         ) : (

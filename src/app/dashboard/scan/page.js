@@ -151,10 +151,9 @@ export default function ScanStationPage() {
 
       <div className="glass-card" style={{ background: "var(--bg-panel)", display: "flex", flexDirection: "column", gap: "1rem" }}>
         <div>
-          <h3 style={{ fontSize: "1.1rem" }}>Scan a QR label</h3>
+          <h3 style={{ fontSize: "1.1rem" }}>Scan QR code</h3>
           <p style={{ fontSize: "0.85rem", marginTop: "0.25rem" }}>
-            Point the camera at the code on the equipment tag. The matching
-            allocations show up on the right - no typing, no logbook.
+            Point the camera at the QR label on the equipment. The asset record and its active bookings will load on the right.
           </p>
         </div>
 
@@ -181,7 +180,7 @@ export default function ScanStationPage() {
 
         <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
           <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
-            No camera handy? Enter the asset ID printed under the code:
+            Or enter the asset ID printed below the QR code:
           </p>
           <form onSubmit={handleManualLookup} style={{ display: "flex", gap: "0.5rem" }}>
             <input
@@ -212,9 +211,9 @@ export default function ScanStationPage() {
 
         {!asset ? (
           <div className="glass-card" style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--bg-panel)" }}>
-            <h3 style={{ fontSize: "1.1rem" }}>Nothing scanned yet</h3>
+            <h3 style={{ fontSize: "1.1rem" }}>No asset loaded</h3>
             <p style={{ fontSize: "0.85rem", marginTop: "0.5rem", color: "var(--text-muted)" }}>
-              Scan a tag or look up an ID and the item's live allocations will appear here.
+              Scan a QR code or enter an asset ID to load booking records.
             </p>
           </div>
         ) : (
@@ -240,7 +239,7 @@ export default function ScanStationPage() {
             <div className="glass-card" style={{ background: "var(--bg-panel)" }}>
               <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Ready for pickup ({approvedBookings.length})</h3>
               {approvedBookings.length === 0 ? (
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>No approved requests waiting on this item.</p>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>No approved bookings waiting for this asset.</p>
               ) : (
                 approvedBookings.map((b) => (
                   <div key={b.id} style={{
@@ -269,7 +268,7 @@ export default function ScanStationPage() {
             <div className="glass-card" style={{ background: "var(--bg-panel)" }}>
               <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Currently out ({outBookings.length})</h3>
               {outBookings.length === 0 ? (
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Every unit of this item is accounted for.</p>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>No units currently issued for this asset.</p>
               ) : (
                 outBookings.map((b) => (
                   <div key={b.id} style={{
