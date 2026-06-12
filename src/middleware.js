@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { jwtVerify } from "jose";
 
 const ADMIN_ONLY = [
   "/dashboard/requests",
@@ -10,25 +10,42 @@ const ADMIN_ONLY = [
   "/dashboard/audit",
 ];
 
-export function middleware(request) {
+async function getSession(token) {
+  if (!token) return null;
+  try {
+    const secret = new TextEncoder().encode(
+      process.env.JWT_SECRET || "super-secret-key-123456789"
+    );
+    const { payload } = await jwtVerify(token, secret);
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+export async function middleware(request) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
-  const session = token ? verifyToken(token) : null;
+  const session = await getSession(token);
 
+  // Already logged in — skip the login page
   if (pathname === "/login" && session) {
     const home = session.role === "admin" ? "/dashboard" : "/dashboard/catalog";
     return NextResponse.redirect(new URL(home, request.url));
   }
 
+  // Protect all dashboard routes
   if (pathname.startsWith("/dashboard")) {
     if (!session) {
-      const loginUrl = new URL("/login", request.url);
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
+    // Non-admins can't access admin-only pages
     if (session.role !== "admin") {
-      // dashboard root is the admin analytics view; students land on the catalog
-      if (pathname === "/dashboard" || ADMIN_ONLY.some((p) => pathname.startsWith(p))) {
+      if (
+        pathname === "/dashboard" ||
+        ADMIN_ONLY.some((p) => pathname.startsWith(p))
+      ) {
         return NextResponse.redirect(new URL("/dashboard/catalog", request.url));
       }
     }
