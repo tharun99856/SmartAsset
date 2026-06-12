@@ -68,7 +68,7 @@ export default function LoginPage() {
         throw new Error(data.error || "Something went wrong. Please try again.");
       }
 
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(err.message);
     } finally {
