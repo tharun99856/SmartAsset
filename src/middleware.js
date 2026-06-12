@@ -28,12 +28,6 @@ export async function middleware(request) {
   const token = request.cookies.get("token")?.value;
   const session = await getSession(token);
 
-  // Already logged in — skip the login page
-  if (pathname === "/login" && session) {
-    const home = session.role === "admin" ? "/dashboard" : "/dashboard/catalog";
-    return NextResponse.redirect(new URL(home, request.url));
-  }
-
   // Protect all dashboard routes
   if (pathname.startsWith("/dashboard")) {
     if (!session) {
@@ -55,5 +49,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*"],
 };
